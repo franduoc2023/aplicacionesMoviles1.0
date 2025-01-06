@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Greeting Card</string>
+    <string name="title_activity_recupera_contraseña">RecuperaContraseña</string>
+    <string name="title_activity_recuperar_contraseña">RecuperarContraseña</string>
+    <string name="title_activity_recuperar_contraseña2">RecuperarContraseña2</string>
+    <string name="title_activity_invitacion_qr">InvitacionQR</string>
+    <string name="title_activity_crearinvitacion">Crearinvitacion</string>
+</resources>
