@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
  import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.TextField
 import androidx.compose.material3.Text
@@ -89,6 +90,8 @@ fun registroEntradaCompleto() {
     val arregloUsuario = remember { mutableStateListOf<Pair<String, String>>() }
     var mensajeRegistro by remember { mutableStateOf("") }
     val enviarLogin = LocalContext.current
+    var mostrarAlerta by remember { mutableStateOf(false) }
+
 
     Box(
         modifier = Modifier
@@ -147,7 +150,7 @@ fun registroEntradaCompleto() {
 
 
                 } else mensajeRegistro = "Error al registrar "
-
+                    mostrarAlerta = true
 
                  },
                 modifier = Modifier
@@ -160,10 +163,36 @@ fun registroEntradaCompleto() {
 
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = mensajeRegistro,
-                modifier = Modifier.padding(8.dp)
-            )
+          if(mostrarAlerta){
+              AlertDialog(
+                  onDismissRequest = {  },
+                  title = { Text("Registro")},
+                  text = {Text(mensajeRegistro)},
+                  confirmButton = {Column(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(16.dp),
+                      horizontalAlignment = Alignment.CenterHorizontally
+                  ){
+                      Button(onClick = {
+                          if (mensajeRegistro == "Usuario registrado") {
+                              val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
+                              enviarLogin.startActivity(enviarLogin2)
+                              mostrarAlerta = false
+                          }else{
+
+                          }
+                          mostrarAlerta = false
+
+
+                      }) {
+                          Text("Aceptar")
+                      }
+                  }}
+
+
+              )
+          }
 
         }
     }

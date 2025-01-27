@@ -2,11 +2,9 @@ package com.example.greetingcard
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import androidx.activity.ComponentActivity
+ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +26,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.greetingcard.ui.theme.GreetingCardTheme
 
 
 import androidx.compose.runtime.getValue
@@ -60,11 +57,12 @@ fun PantallaPrincipal4() {
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
 
-            botonRecuperacion()
+            BotonRecuperacion()
+
             botomLogin2()
         }
     }
@@ -76,58 +74,106 @@ fun PantallaPrincipal4() {
 
 
 @Composable
-fun botonRecuperacion (){
+fun BotonRecuperacion() {
+    val enviarLogin = LocalContext.current
     var mensajeRecuperacion by remember { mutableStateOf("") }
-    val correosRegistrados = listOf("francisco@gmail.com", "maria@gmail.com", "juan@gmail.com", "ana@gmail.com")
-    var RecuperacionExito by remember { mutableStateOf(" ") }
-    var email by remember { mutableStateOf("") }
-    TextField(
-        value = email,
-        onValueChange = { email = it },
-        label = { Text("Correo electrónico") },
-        modifier = Modifier.fillMaxWidth()
+    val correosRegistrados = listOf(
+        "francisco@gmail.com",
+        "maria@gmail.com",
+        "juan@gmail.com",
+        "ana@gmail.com"
     )
+    var email by remember { mutableStateOf("") }
+    var mostrarAlerta by remember { mutableStateOf(false) }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Button(
-        onClick = {
-             mensajeRecuperacion = if (correosRegistrados.contains(email)) {
-                "Email de recuperacion Enviado "
-            } else {
-                "Email no encontrado"
-            }
-        },
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text("Recuperar contraseña")
+         TextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Correo electrónico") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+         Button(
+            onClick = {
+                if (correosRegistrados.contains(email)) {
+                    mensajeRecuperacion = "Email Correcto, se enviare link de recuperacion"
+                } else {
+                    mensajeRecuperacion = "El email no existe."
+                }
+                mostrarAlerta = true
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Recuperar contraseña")
+        }
+
+
+        if (mostrarAlerta) {
+            AlertDialog(
+                onDismissRequest = { },
+                title = { Text("Recuperación") },
+                text = { Text(mensajeRecuperacion) },
+                confirmButton = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = {
+                                if (correosRegistrados.contains(email)) {
+                                    val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
+                                    enviarLogin.startActivity(enviarLogin2)
+                                    mostrarAlerta = false
+                                } else {
+                                    mensajeRecuperacion = "Correo no registrado"
+                                }
+                                mostrarAlerta = false
+                            }
+                        ) {
+                            Text("Aceptar")
+                        }
+                    }
+                }
+            )
+        }
+
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-     Text(
-        text = mensajeRecuperacion,
-      )
 }
-
 
 @Composable
 fun botomLogin2() {
     val enviarLogin = LocalContext.current
 
-    Button(
-        onClick = {
-            val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
-            enviarLogin.startActivity(enviarLogin2)
-        },
+    Column(
         modifier = Modifier
-
             .fillMaxWidth()
-            .height(50.dp)
-
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text("Login")
+         Button(
+            onClick = {
+                val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
+                enviarLogin.startActivity(enviarLogin2)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Login")
+        }
     }
 }

@@ -13,19 +13,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.Image
- import androidx.compose.ui.draw.paint
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.res.painterResource
- import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
-
-                PantallaPrincipal()
-
+            PantallaPrincipal()
         }
     }
 }
@@ -35,8 +32,8 @@ fun PantallaPrincipal() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .paint(painter = painterResource(id = R.drawable.fondo),  contentScale = ContentScale.Crop)
-             .padding(16.dp)
+            .paint(painter = painterResource(id = R.drawable.fondo), contentScale = ContentScale.Crop)
+            .padding(16.dp)
     ) {
         Column(
             modifier = Modifier
@@ -45,20 +42,15 @@ fun PantallaPrincipal() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
             Spacer(modifier = Modifier.height(100.dp))
 
             Logo2()
 
-
-
-
             Spacer(modifier = Modifier.height(32.dp))
 
-             entradaDatos()
+            entradaDatos()
 
             Spacer(modifier = Modifier.height(32.dp))
-
 
             Registro()
             Spacer(modifier = Modifier.height(16.dp))
@@ -66,25 +58,6 @@ fun PantallaPrincipal() {
             Recuperar()
         }
     }
-}
-
-
-
-@Composable
-fun Recuperar (){
-
-    Button(onClick = {
-
-    }
-         ,   modifier = Modifier
-            .width(250.dp)
-        .height(50.dp)
-
-    ) {
-        Text(text = "Recuperar Contraseña")
-    }
-
-
 }
 
 
@@ -101,11 +74,12 @@ fun Logo2() {
     )
 }
 
-
 @Composable
 fun entradaDatos() {
     var entradaUsuario by remember { mutableStateOf("") }
     var entradaPassword by remember { mutableStateOf("") }
+    var ActivacionAlerta by remember { mutableStateOf("") }
+    var mostrarCualquierAlerta by remember { mutableStateOf(false) }
 
     val arregloUsuario = arrayOf(
         "francisco" to "123456",
@@ -115,80 +89,79 @@ fun entradaDatos() {
         "kentaro" to "123456"
     )
 
-
     var loginExitoso by remember { mutableStateOf<Boolean?>(null) }
 
-
-    Box(
+    Column(
         modifier = Modifier
-            .fillMaxWidth(),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = entradaUsuario,
+            onValueChange = { entradaUsuario = it },
+            label = { Text("Usuario") }
+        )
 
-            TextField(
-                value = entradaUsuario,
-                onValueChange = { entradaUsuario = it },
-                label = { Text("Usuario") }
-            )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = entradaPassword,
+            onValueChange = { entradaPassword = it },
+            label = { Text("Contraseña") },
+            visualTransformation = PasswordVisualTransformation()
+        )
 
-             TextField(
-                value = entradaPassword,
-                onValueChange = { entradaPassword = it },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation()
-            )
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(onClick = {
-
-
-
+        Button(
+            onClick = {
                 loginExitoso = arregloUsuario.any { it.first == entradaUsuario && it.second == entradaPassword }
-
-            } ,
-                modifier = Modifier
-                    .padding(5.dp)
-                    .width(250.dp)
-                    .height(50.dp)) {
-                Text(text = "Login")
-
-            }
-
-            loginExitoso?.let { exitoso ->
-                Text(
-                    text = if (exitoso) "Login exitoso" else "Algo esta mal",
-                 )
-            }
+                ActivacionAlerta = if (loginExitoso == true) "Login Correcto" else "Login Incorrecto"
+                mostrarCualquierAlerta = true
+            },
+            modifier = Modifier
+                .padding(5.dp)
+                .width(250.dp)
+                .height(50.dp)
+        ) {
+            Text(text = "Login")
         }
-    }
+
+        if (mostrarCualquierAlerta) {
+            AlertDialog(
+                onDismissRequest = { mostrarCualquierAlerta = false },  /*  onDisMissRequest es para contrar un tipo de instancia si se cierra o no cuando
+                 inicializar el contenido del AlertDialog*/
+                title = {
+                    Text(text = "Alerta")
+
+                },
+                text = {
+                    Text(text = ActivacionAlerta)
+                },
+                confirmButton = {
+                        if (ActivacionAlerta == "Login Correcto") {
+                            Button(onClick = { mostrarCualquierAlerta = false }) {
+                                Text("Aceptar")
+
+
+                            }
+                        }else{
+                            Button(onClick = { mostrarCualquierAlerta = false }) {
+                                Text("Intentar de Nuevo ")
+
+
+                        }
+                }}
+            )
+/* lo importante de entender es que el click maneja false para cerrar las ventanas */
+                }}
 }
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewEntradaDatos() {
-    Column {
-        PantallaPrincipal()
-    }
-}
-
-
-
-
-
-@Composable
-fun Registro (){
-
+fun Registro() {
     val enviarRegistro = LocalContext.current
 
     Button(
@@ -200,8 +173,46 @@ fun Registro (){
             .padding(5.dp)
             .width(250.dp)
             .height(50.dp)
-
     ) {
         Text("Registro")
     }
 }
+
+
+
+@Composable
+fun Recuperar() {
+    val enviarRecuperarContraseña = LocalContext.current
+
+
+    Button(
+        onClick = {
+            val enviarRecuperarContraseña2 = Intent(enviarRecuperarContraseña,RecuperarContraseña::class.java)
+            enviarRecuperarContraseña.startActivity(enviarRecuperarContraseña2)
+
+
+        },
+        modifier = Modifier
+            .width(250.dp)
+            .height(50.dp)
+    ) {
+        Text(text = "Recuperar Contraseña")
+    }
+}
+
+
+
+
+
+
+
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewEntradaDatos() {
+    MaterialTheme {
+        PantallaPrincipal()
+    }
+}
+
+
