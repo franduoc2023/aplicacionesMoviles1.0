@@ -5,50 +5,38 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class CambiarDatos : ComponentActivity() {
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
-
-
+            PantallaPrincipal3(auth, firestore)
         }
     }
 }
 
-
-@Preview
 @Composable
-fun PantallaPrincipal3() {
+fun PantallaPrincipal3(auth: FirebaseAuth, firestore: FirebaseFirestore) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .paint(painter = painterResource(id = R.drawable.fondo),  contentScale = ContentScale.Crop)
+            .paint(painter = painterResource(id = R.drawable.fondo), contentScale = ContentScale.Crop)
             .padding(16.dp)
     ) {
         Column(
@@ -58,65 +46,91 @@ fun PantallaPrincipal3() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
             contraseñaRecuperaLogo()
             Spacer(modifier = Modifier.height(8.dp))
-
-            RecuperacionConta()
+            RecuperacionConta(auth, firestore)
             botomLogin3()
-
-         }
+        }
     }
 }
 
-
 @Composable
-fun RecuperacionConta (){
+fun RecuperacionConta(auth: FirebaseAuth, firestore: FirebaseFirestore) {
+    val usuarioActual = auth.currentUser
+
     var entradaNombre by remember { mutableStateOf("") }
-    var entradaContraseña by remember { mutableStateOf("") }
+    var mensajeRecuperacion by remember { mutableStateOf("") }
+    var mostrarAlerta by remember { mutableStateOf(false) }
+    var exitoRecuperacion by remember { mutableStateOf(false) }
 
     TextField(
         value = entradaNombre,
         onValueChange = { entradaNombre = it },
-        label = { Text("Cambiar Nombre Usuario ") },
-     )
-
-    Spacer(modifier = Modifier.height(8.dp))
-    TextField(
-        value = entradaContraseña,
-        onValueChange = { entradaContraseña = it },
-        label = { Text("Cambiar Contraseña   ") },
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-
-    TextField(
-        value = entradaContraseña,
-        onValueChange = { entradaContraseña = it },
-        label = { Text("Confirmar contraseña   ") },
+        label = { Text("Nuevo Nombre de Usuario") },
+        modifier = Modifier.fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    Button( {
-     }, modifier = Modifier
-        .padding(5.dp)
-        .fillMaxWidth()
-         .height(50.dp)) {
-        Text("Cambiar Datos")
+    Button(
+        onClick = {
+            if (usuarioActual != null) {
+                val userId = usuarioActual.uid
+                if (entradaNombre.isNotBlank()) {
+                    firestore.collection("usuarios")
+                        .document(userId)
+                        .set(mapOf("nombre" to entradaNombre), SetOptions.merge())
+                        .addOnSuccessListener {
+                            mensajeRecuperacion = "Nombre actualizado correctamente"
+                            mostrarAlerta = true
+                            exitoRecuperacion = true
+                        }
+
+                } else {
+                    mensajeRecuperacion = "El nombre no puede estar vacío"
+                    mostrarAlerta = true
+                    exitoRecuperacion = false
+                }
+            } else {
+                mensajeRecuperacion = "error de sesion"
+                mostrarAlerta = true
+                exitoRecuperacion = false
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    ) {
+        Text("Actualizar Nombre")
     }
 
-
+    if (mostrarAlerta) {
+        AlertDialog(
+            onDismissRequest = { mostrarAlerta = false },
+            title = { Text("Resultado") },
+            text = { Text(mensajeRecuperacion) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarAlerta = false
+                        if (exitoRecuperacion) {
+                            mostrarAlerta
+                        }
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            }
+        )
+    }
 }
 
-
 @Composable
-fun contraseñaRecuperaLogo(){
+fun contraseñaRecuperaLogo() {
     Image(
         painter = painterResource(id = R.drawable.logo_registro),
-        contentDescription = "Logo de registro",
+        contentDescription = "Logo de registro"
     )
-
-
 }
 
 @Composable
@@ -132,8 +146,9 @@ fun botomLogin3() {
             .padding(5.dp)
             .fillMaxWidth()
             .height(50.dp)
-
     ) {
         Text("Login")
     }
 }
+
+// se utilizada el metodod de firestore para actualizar datos de nombre y se cambia en firestore las reglas

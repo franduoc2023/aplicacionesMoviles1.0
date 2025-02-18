@@ -1,7 +1,6 @@
 package com.example.greetingcard
 
 import android.content.Intent
-import android.media.Image
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.dp
  import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
@@ -29,25 +27,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.setValue
+ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RegistroMain : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val auth = FirebaseAuth.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
         setContent {
 
 
-            PantallaPrincipal2()
+            PantallaPrincipal2(auth, firestore)
 
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PantallaPrincipal2() {
+ @Composable
+fun PantallaPrincipal2(auth:FirebaseAuth,firestore: FirebaseFirestore) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +65,7 @@ fun PantallaPrincipal2() {
 
             registroEntradaLogo()
     Spacer(modifier = Modifier.height(8.dp))
-            registroEntradaCompleto()
+            registroEntradaCompleto(auth,firestore)
             botomLogin()
         }
     }
@@ -81,17 +82,16 @@ fun registroEntradaLogo(){
 }
 
 @Composable
-fun registroEntradaCompleto() {
+fun registroEntradaCompleto(auth: FirebaseAuth, firestore: FirebaseFirestore) {
     var entradaNombre by remember { mutableStateOf("") }
     var entradanContraseña by remember { mutableStateOf("") }
-    var entradanContraseñaConfirmacion by remember() { mutableStateOf("")}
-    var email by remember() { mutableStateOf("")}
+    var entradanContraseñaConfirmacion by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
 
-    val arregloUsuario = remember { mutableStateListOf<Pair<String, String>>() }
     var mensajeRegistro by remember { mutableStateOf("") }
+    var registroExitoso by remember { mutableStateOf(false) }
     val enviarLogin = LocalContext.current
     var mostrarAlerta by remember { mutableStateOf(false) }
-
 
     Box(
         modifier = Modifier
@@ -106,7 +106,7 @@ fun registroEntradaCompleto() {
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-             TextField(
+            TextField(
                 value = entradaNombre,
                 onValueChange = { entradaNombre = it },
                 label = { Text("Usuario") },
@@ -114,7 +114,7 @@ fun registroEntradaCompleto() {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-             TextField(
+            TextField(
                 value = entradanContraseña,
                 onValueChange = { entradanContraseña = it },
                 label = { Text("Contraseña") },
@@ -137,66 +137,82 @@ fun registroEntradaCompleto() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
-             Button(
-                onClick = { if (entradaNombre.isNotBlank() && email.isNotBlank() &&
-                    entradanContraseña == entradanContraseñaConfirmacion &&
-                    entradanContraseña.isNotBlank())
-                {
-                    mensajeRegistro = "Usuario registrado"
-                    arregloUsuario.add(entradaNombre to entradanContraseña)
-
-
-                } else mensajeRegistro = "Error al registrar "
-                    mostrarAlerta = true
-
-                 },
+            Button(
+                onClick = {
+                    if (entradaNombre.isNotBlank() && email.isNotBlank() &&
+                        entradanContraseña == entradanContraseñaConfirmacion &&
+                        entradanContraseña.isNotBlank()
+                    ) {
+                        auth.createUserWithEmailAndPassword(email, entradanContraseña)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid
+                                    val usuario = hashMapOf(
+                                        "nombre" to entradaNombre,
+                                        "email" to email
+                                    )
+                                    if (userId != null) {
+                                        firestore.collection("usuarios").document(userId)
+                                            .set(usuario)
+                                            .addOnSuccessListener {
+                                                mensajeRegistro = "Usuario registrado exitosamente"
+                                                registroExitoso = true
+                                                mostrarAlerta = true
+                                            }
+                                            .addOnFailureListener {
+                                                mensajeRegistro = "Error al registrar  "
+                                                mostrarAlerta = true
+                                            }
+                                    }
+                                }
+                            }
+                    } else {
+                        mensajeRegistro = "Error: Completa todos los campos y verifica la contraseña"
+                        mostrarAlerta = true
+                    }
+                },
                 modifier = Modifier
-
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
                 Text("Registrar")
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
-          if(mostrarAlerta){
-              AlertDialog(
-                  onDismissRequest = {  },
-                  title = { Text("Registro")},
-                  text = {Text(mensajeRegistro)},
-                  confirmButton = {Column(
-                      modifier = Modifier
-                          .fillMaxWidth()
-                          .padding(16.dp),
-                      horizontalAlignment = Alignment.CenterHorizontally
-                  ){
-                      Button(onClick = {
-                          if (mensajeRegistro == "Usuario registrado") {
-                              val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
-                              enviarLogin.startActivity(enviarLogin2)
-                              mostrarAlerta = false
-                          }else{
 
-                          }
-                          mostrarAlerta = false
-
-
-                      }) {
-                          Text("Aceptar")
-                      }
-                  }}
-
-
-              )
-          }
-
+            if (mostrarAlerta) {
+                AlertDialog(
+                    onDismissRequest = { },
+                    title = { Text("Registro") },
+                    text = { Text(mensajeRegistro) },
+                    confirmButton = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Button(onClick = {
+                                mostrarAlerta = false
+                                if (registroExitoso) {
+                                    val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
+                                    enviarLogin.startActivity(enviarLogin2)
+                                }
+                            }) {
+                                Text("Aceptar")
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
+
+
+
 
 
 

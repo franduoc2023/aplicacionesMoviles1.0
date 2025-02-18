@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -17,18 +16,23 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        solicitarPermisosUbicacion(this)
+
         setContent {
-            PantallaPrincipal()
+            val viewModel: Metodos = viewModel()
+            PantallaPrincipal(viewModel)
         }
     }
 }
 
 @Composable
-fun PantallaPrincipal() {
+fun PantallaPrincipal(viewModel: Metodos) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -48,7 +52,7 @@ fun PantallaPrincipal() {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            entradaDatos()
+            entradaDatos(viewModel )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -75,21 +79,15 @@ fun Logo2() {
 }
 
 @Composable
-fun entradaDatos() {
-    var entradaUsuario by remember { mutableStateOf("") }
-    var entradaPassword by remember { mutableStateOf("") }
-    var ActivacionAlerta by remember { mutableStateOf("") }
-    var mostrarCualquierAlerta by remember { mutableStateOf(false) }
+fun entradaDatos(viewModel: Metodos) {
+    val context = LocalContext.current
 
-    val arregloUsuario = arrayOf(
-        "francisco" to "123456",
-        "fran" to "123456",
-        "felipe" to "123456",
-        "antonio" to "123456",
-        "kentaro" to "123456"
-    )
-
-    var loginExitoso by remember { mutableStateOf<Boolean?>(null) }
+    var entradaEmail by viewModel.entradaEmail
+    var entradaPassword by viewModel.entradaPassword
+    var ActivacionAlerta by viewModel.ActivacionAlerta
+    var mostrarCualquierAlerta by viewModel.mostrarCualquierAlerta
+    var loginExitoso by viewModel.loginExitoso
+    var navegarChat by viewModel.navegarChat
 
     Column(
         modifier = Modifier
@@ -100,9 +98,9 @@ fun entradaDatos() {
         Spacer(modifier = Modifier.height(8.dp))
 
         TextField(
-            value = entradaUsuario,
-            onValueChange = { entradaUsuario = it },
-            label = { Text("Usuario") }
+            value = entradaEmail,
+            onValueChange = { entradaEmail = it },
+            label = { Text("Correo electrónico") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -118,9 +116,7 @@ fun entradaDatos() {
 
         Button(
             onClick = {
-                loginExitoso = arregloUsuario.any { it.first == entradaUsuario && it.second == entradaPassword }
-                ActivacionAlerta = if (loginExitoso == true) "Login Correcto" else "Login Incorrecto"
-                mostrarCualquierAlerta = true
+                viewModel.iniciarSesion()
             },
             modifier = Modifier
                 .padding(5.dp)
@@ -132,33 +128,26 @@ fun entradaDatos() {
 
         if (mostrarCualquierAlerta) {
             AlertDialog(
-                onDismissRequest = { mostrarCualquierAlerta = false },  /*  onDisMissRequest es para contrar un tipo de instancia si se cierra o no cuando
-                 inicializar el contenido del AlertDialog*/
-                title = {
-                    Text(text = "Alerta")
-
-                },
-                text = {
-                    Text(text = ActivacionAlerta)
-                },
+                onDismissRequest = { mostrarCualquierAlerta = false },
+                title = { Text(text = "Alerta") },
+                text = { Text(text = ActivacionAlerta) },
                 confirmButton = {
-                        if (ActivacionAlerta == "Login Correcto") {
-                            Button(onClick = { mostrarCualquierAlerta = false }) {
-                                Text("Aceptar")
-
-
-                            }
-                        }else{
-                            Button(onClick = { mostrarCualquierAlerta = false }) {
-                                Text("Intentar de Nuevo ")
-
-
+                    Button(onClick = {
+                        mostrarCualquierAlerta = false
+                        if (loginExitoso && navegarChat) {
+                            navegarChat = false
+                            val intent = Intent(context, acciones::class.java)
+                            context.startActivity(intent)
                         }
-                }}
+                    }) {
+                        Text("Aceptar")
+                    }
+                }
             )
-/* lo importante de entender es que el click maneja false para cerrar las ventanas */
-                }}
+        }
+    }
 }
+
 
 @Composable
 fun Registro() {
@@ -206,13 +195,5 @@ fun Recuperar() {
 
 
 
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewEntradaDatos() {
-    MaterialTheme {
-        PantallaPrincipal()
-    }
-}
 
 

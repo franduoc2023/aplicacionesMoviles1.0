@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import androidx.datastore.preferences.core.MutablePreferences
 
-data class Usuario(val username: String, val password: String)
+//data class Usuario(val username: String, val password: String)
 /*
 class MetodosUsuario(private val paraGuardado: Context) {
 

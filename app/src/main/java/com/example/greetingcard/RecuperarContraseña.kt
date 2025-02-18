@@ -1,4 +1,5 @@
 package com.example.greetingcard
+import com.google.firebase.auth.FirebaseAuth
 
 import android.content.Intent
 import android.os.Bundle
@@ -24,28 +25,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RecuperarContraseña : ComponentActivity() {
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
 
-            PantallaPrincipal4()
+            PantallaPrincipal4(auth,firestore)
 
         }
     }
 }
 
-@Preview
+
 @Composable
-fun PantallaPrincipal4() {
+fun PantallaPrincipal4(auth: FirebaseAuth, firestore: FirebaseFirestore) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -61,7 +65,7 @@ fun PantallaPrincipal4() {
         ) {
 
 
-            BotonRecuperacion()
+            BotonRecuperacion(auth,firestore )
 
             botomLogin2()
         }
@@ -74,18 +78,13 @@ fun PantallaPrincipal4() {
 
 
 @Composable
-fun BotonRecuperacion() {
+fun BotonRecuperacion(auth: FirebaseAuth, firestore: FirebaseFirestore ) {
     val enviarLogin = LocalContext.current
     var mensajeRecuperacion by remember { mutableStateOf("") }
-    val correosRegistrados = listOf(
-        "francisco@gmail.com",
-        "maria@gmail.com",
-        "juan@gmail.com",
-        "ana@gmail.com"
-    )
+
     var email by remember { mutableStateOf("") }
     var mostrarAlerta by remember { mutableStateOf(false) }
-
+    var exitoRecuperacion by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,52 +103,58 @@ fun BotonRecuperacion() {
 
          Button(
             onClick = {
-                if (correosRegistrados.contains(email)) {
-                    mensajeRecuperacion = "Email Correcto, se enviare link de recuperacion"
-                } else {
-                    mensajeRecuperacion = "El email no existe."
-                }
-                mostrarAlerta = true
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
-            Text("Recuperar contraseña")
-        }
+                if (email.isNotBlank( )) {
+                    firestore.collection("usuarios")
+                        .whereEqualTo("email", email)
+                        .get()
+                        .addOnSuccessListener { documents ->
+                            if (!documents.isEmpty) {
 
+                                auth.sendPasswordResetEmail(email)
+                                    .addOnSuccessListener {
+                                        mensajeRecuperacion = "Se ha enviado un correo de recuperación"
+                                        mostrarAlerta = true
+                                        exitoRecuperacion = true
+
+                                    }
+
+                            } else {
+
+                                mensajeRecuperacion = "Correo no registrado en nuestra base de datos"
+                                mostrarAlerta = true
+                                exitoRecuperacion = false
+                            }
+                        }
+
+                }
+            },
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .height(50.dp)
+         ) {
+             Text("Recuperar contraseña")
+         }
 
         if (mostrarAlerta) {
             AlertDialog(
-                onDismissRequest = { },
+                onDismissRequest = {   },
                 title = { Text("Recuperación") },
                 text = { Text(mensajeRecuperacion) },
                 confirmButton = {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Button(
-                            onClick = {
-                                if (correosRegistrados.contains(email)) {
-                                    val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
-                                    enviarLogin.startActivity(enviarLogin2)
-                                    mostrarAlerta = false
-                                } else {
-                                    mensajeRecuperacion = "Correo no registrado"
-                                }
-                                mostrarAlerta = false
+                    Button(
+                        onClick = {
+                            mostrarAlerta = false
+                            if (exitoRecuperacion) {
+                                val enviarLogin2 = Intent(enviarLogin, MainActivity::class.java)
+                                enviarLogin.startActivity(enviarLogin2)
                             }
-                        ) {
-                            Text("Aceptar")
                         }
+                    ) {
+                        Text("Aceptar")
                     }
                 }
             )
         }
-
     }
 }
 

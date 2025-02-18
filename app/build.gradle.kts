@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -36,10 +37,15 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
 }
 
 dependencies {
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -50,9 +56,25 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
-
-    // Agrega esta dependencia para `background` y otros modificadores de Compose
     implementation("androidx.compose.foundation:foundation:1.5.1")
+
+         implementation(platform(libs.firebase.bom))
+        implementation(libs.firebase.auth.ktx)
+        implementation(libs.firebase.firestore.ktx)
+        implementation(libs.firebase.database)
+        implementation(libs.firebase.messaging.ktx)
+
+
+
+
+
+     implementation("com.google.android.gms:play-services-base:18.3.0")
+    implementation(libs.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.ui.test.junit4.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -61,4 +83,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation ("io.mockk:mockk:1.12.1")
+
 }
+//https://www.youtube.com/watch?v=xCjIJMydI3s&t=529s&ab_channel=Programaci%C3%B3nAndroidbyAristiDevs
+// explica pruebas unitarias y las librerias de testing mock y mockito como spring boot
