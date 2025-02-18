@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "334981568264",
+    "firebase_url": "https://sumativa3aplicacionesmoviles-default-rtdb.firebaseio.com",
+    "project_id": "sumativa3aplicacionesmoviles",
+    "storage_bucket": "sumativa3aplicacionesmoviles.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334981568264:android:e61377f3b28e3bc6e2febd",
+        "android_client_info": {
+          "package_name": "com.example.greetingcard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0lmh9myFjCLUnl0OUWqvda5IeqJNLfDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
